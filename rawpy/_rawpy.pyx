@@ -79,6 +79,8 @@ cdef extern from "libraw.h":
         unsigned    linear_max[4]
         float       cmatrix[3][4]
         float       cam_xyz[4][3]
+        float       rgb_cam[3][4]
+        float       ccm[3][4]
         void        *profile # a string?
         unsigned    profile_length
 
@@ -743,6 +745,35 @@ cdef class RawPy:
             for i in range(3):
                 for j in range(4):
                     matrix[i,j] = self.p.imgdata.rawdata.color.cmatrix[i][j]
+            return matrix
+
+    property rgb_cam_matrix:
+        """
+        Camera RGB - sRGB conversion matrix.
+
+        :rtype: ndarray of shape (3,4)
+        """
+        def __get__(self):
+            self.ensure_unpack()
+            cdef np.ndarray matrix = np.empty((3, 4), dtype=np.float32)
+            for i in range(3):
+                for j in range(4):
+                    matrix[i,j] = self.p.imgdata.rawdata.color.rgb_cam[i][j]
+            return matrix
+
+    property color_correction_matrix:
+        """
+        Camera color correction matrix readed from file metadata
+        (uniform matrix if no such data in file)
+
+        :rtype: ndarray of shape (3,4)
+        """
+        def __get__(self):
+            self.ensure_unpack()
+            cdef np.ndarray matrix = np.empty((3, 4), dtype=np.float32)
+            for i in range(3):
+                for j in range(4):
+                    matrix[i,j] = self.p.imgdata.rawdata.color.ccm[i][j]
             return matrix
         
     property rgb_xyz_matrix:
